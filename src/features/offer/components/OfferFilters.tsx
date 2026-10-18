@@ -19,6 +19,7 @@ interface OfferFiltersProps {
     /** Commits the mobile draft to live state */
     onApplyDraft: () => void;
     onApplyPreset: (filters: OfferFiltersType) => void;
+    onOpenDraft: () => void;
     onClearFilters: () => void;
 }
 
@@ -235,6 +236,8 @@ function DesktopFilterBar({
                 error={errors.maxAmount}
                 onChange={handleMaxChange}
             />
+            <UncontrolledAmountInput id="desktop-min-price" label="Min Price (USD)" defaultValue={filters.minPrice} resetKey={`min-price-${filters.minPrice === "" ? "empty" : "set"}`} placeholder="0.00" error={errors.minPrice} onChange={(v) => onFilterChange("minPrice", v)} />
+            <UncontrolledAmountInput id="desktop-max-price" label="Max Price (USD)" defaultValue={filters.maxPrice} resetKey={`max-price-${filters.maxPrice === "" ? "empty" : "set"}`} placeholder="No limit" error={errors.maxPrice} onChange={(v) => onFilterChange("maxPrice", v)} />
             <div className="flex flex-col gap-1.5">
                 <label className="text-[#9BABB7] text-[10px] font-bold tracking-widest uppercase">Sort By</label>
                 <OfferSortSelect
@@ -275,11 +278,15 @@ function MobileFilterDrawer({
 
             {/* Sheet */}
             <div
-                className="relative z-10 w-full bg-[#081521] border-t border-[#263949] rounded-t-3xl p-6 pb-8 flex flex-col gap-5"
+                id="mobile-filter-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mobile-filter-title"
+                className="relative z-10 w-full max-h-[85dvh] overflow-y-auto bg-[#081521] border-t border-[#263949] rounded-t-3xl p-6 pb-8 flex flex-col gap-5"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-white font-bold text-base">Filters &amp; Sorting</h3>
+                    <h3 id="mobile-filter-title" className="text-white font-bold text-base">Filters &amp; Sorting</h3>
                     <button onClick={onClose} className="text-[#6b7280] hover:text-white transition-colors p-1">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6L6 18M6 6l12 12" />
@@ -323,6 +330,10 @@ function MobileFilterDrawer({
                         error={errors.maxAmount}
                         onChange={(v) => onDraftFilterChange("maxAmount", v)}
                     />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <AmountInput id="mobile-min-price" label="Min Price (USD)" value={draftFilters.minPrice} placeholder="0.00" error={errors.minPrice} onChange={(v) => onDraftFilterChange("minPrice", v)} />
+                    <AmountInput id="mobile-max-price" label="Max Price (USD)" value={draftFilters.maxPrice} placeholder="No limit" error={errors.maxPrice} onChange={(v) => onDraftFilterChange("maxPrice", v)} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                     <span className="text-[#9BABB7] text-[10px] font-bold tracking-widest uppercase">Sort By</span>
@@ -369,6 +380,7 @@ export function OfferFilters({
     onDraftFilterChange,
     onApplyDraft,
     onApplyPreset,
+    onOpenDraft,
     onClearFilters,
 }: OfferFiltersProps) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -425,6 +437,8 @@ export function OfferFilters({
         filters.asset === DEFAULT_FILTERS.asset &&
         filters.minAmount === DEFAULT_FILTERS.minAmount &&
         filters.maxAmount === DEFAULT_FILTERS.maxAmount &&
+        filters.minPrice === DEFAULT_FILTERS.minPrice &&
+        filters.maxPrice === DEFAULT_FILTERS.maxPrice &&
         filters.sort === DEFAULT_FILTERS.sort;
 
     return (
@@ -467,11 +481,13 @@ export function OfferFilters({
                 {/* Mobile trigger */}
                 <button
                     id="mobile-filter-trigger"
-                    onClick={() => setIsDrawerOpen(true)}
+                    onClick={() => { onOpenDraft(); setIsDrawerOpen(true); }}
                     className="md:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl
                                bg-[#1a1a1c] border border-[#263949] text-white text-sm font-bold
                                hover:border-[#55D6BE]/40 transition-colors duration-200 relative"
                     aria-label={`Open filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ""}`}
+                    aria-expanded={isDrawerOpen}
+                    aria-controls="mobile-filter-dialog"
                 >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
